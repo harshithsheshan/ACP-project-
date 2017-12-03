@@ -1,0 +1,298 @@
+#include<stdio.h>
+#include<string.h>
+#include<time.h>
+
+#include <unistd.h>
+#include<stdlib.h>
+int i,j,ph,ne=0,ni=0;
+FILE *f,*fb,*t,*fp;
+typedef struct
+{
+    char empid[6];
+    char name[30];
+    int age;
+    char phone[10];
+    char address[50];
+
+    int admin;
+
+}employee;
+typedef struct
+{
+    char itcode[8];
+    char name[30];
+    double quantity;
+    double min;
+    float rate;
+    float amount;
+    float total;
+
+}item;
+ employee e,p;
+ item I,product;
+void line()
+{
+    for(i=0;i<100;i++)
+        printf("_");
+    printf("\n");
+}
+int choice;
+float tot=0;
+void templ()
+{
+    printf("\n\t\t\t\tSUPERMARKET MANAGEMENT SYSTEM\n");
+    line();
+    time_t t;
+    time(&t);
+    printf("%s",ctime(&t));
+    line();
+}
+void addemp()
+{
+    int t;
+    printf("\n\t\t\t enter no of employees \n\t\t\t");
+    scanf("%d",&t);
+    f=fopen("employee.txt","ab+");
+    for(i=0;i<t;i++)
+    {
+        printf("\n\tenter employee details \n");
+        printf("\tenter employee name:\t");
+        scanf("%s",e.name);
+        printf("\n\tenter emp id(6 charencters) :\t");
+        scanf("%s",e.empid);
+        printf("\n\tenter age of employee:\t");
+        scanf("%d",&e.age);
+        printf("\n\tenter phone no of employee (10 digits):\t");
+        scanf("%s",e.phone);
+        printf("\n\tenter the city of employee(50 chars):\t");
+        scanf("%s",e.address);
+        fwrite(&e,sizeof(e),1,f);
+    }
+    fclose(f);
+}
+void printemp()
+{
+    f=fopen("employee.txt","rb");
+    rewind(f);
+    printf("\t\tNAME\tAGE\t\tEMP ID\t\tPHONE\t\tADDRESS\n");
+    line();
+    while(fread(&e,sizeof(e),1,f))
+    {
+        printf("\t\t%s",e.name);
+        printf("\t%d\t%s\t\t%s\t\t",e.age,e.empid,e.address);
+        puts(e.phone);
+        printf("\n\n");
+    }
+    fclose(f);
+    line();
+}
+void addnewitem()
+{
+    int t;
+    printf("\n\t\t\t enter no of items \n\t\t\t");
+    scanf("%d",&t);
+    f=fopen("items.txt","ab+");
+    for(i=0;i<t;i++)
+    {
+        printf("\n\t\t\tENTER ITEM CODE:\t ");
+        scanf("%s",I.itcode);
+        printf("\n\t\t\tENTER NAME:\t");
+        scanf("%s",I.name);
+        printf("\n\t\t\tENTER INITIAL QUANTITY:\t");
+        scanf("%lf",&I.quantity);
+        printf("\n\t\t\tENTER MINIMUM QUANTITY:\t");
+        scanf("%lf",&I.min);
+        fwrite(&I,sizeof(I),1,f);
+    }
+    fclose(f);
+}
+void printitems()
+{
+    //noread();
+    fp=fopen("items.txt","rb");
+    printf("\t\tITEM CODE\tITEM NAME\tQUANTITY\tMIN QUANTITY\n");
+    line();
+    while(fread(&I,sizeof(I),1,fp))
+    {
+        printf("\t\t%s\t\t%s\t\t%lf\t%lf\n\n",I.itcode,I.name,I.quantity,I.min);
+    }
+    fclose(fp);
+    line();
+
+}
+int loginuser()
+{
+    int p;
+    int pass=12345;
+    printf("\n\t\tENTER PASSWORD : \t");
+    scanf("%d",&p);
+    if(p==pass)
+    {
+        printf("\n\\t\tLOGIN SUCCESSFULL ");
+        return 1;
+    }
+    else
+    {
+        printf("password incorrect ");
+        return 0;
+    }
+}
+void bill()
+{
+            fb=fopen("bill.txt","wb");
+            printf("\tplease chose the option\n");
+            printf("\n-------------------------------------------------------------------\n");
+            printf("1.BILLING\n");
+            printf("\n----------------------bill-----------------------\n");
+            printitems();
+            int d=1;
+            while(d==1)
+            {
+                printf("\nenter the product item code\t:");
+                scanf("%s",product.itcode);
+                f=fopen("items.txt","rb+");
+                rewind(f);
+                while(fread(&I,sizeof(I),1,f))
+                {
+                        if(strcmp(product.itcode,I.itcode)==0)
+                        {
+                            if(product.quantity<=I.quantity)
+                            {
+                                printf("\nenter the quantity\t:");
+                                scanf("%lf",&product.quantity);
+                                I.quantity=I.quantity-product.quantity;
+                                fseek(f,ftell(f)-sizeof(I),SEEK_CUR);
+                                fwrite(&I,sizeof(I),1,f);
+                                fflush(f);
+                                break;
+                            }
+                            else
+                                printf("the product is not in stock\n");
+
+                        }
+                }
+
+                printf("enter the rate per items");
+               scanf("%f",&product.rate);
+               product.amount=product.rate*product.quantity;
+               tot=tot+product.amount;
+               product.total=tot;
+               printf("item code\tquantity\trate\tamount\t");
+               strcpy(I.itcode,product.itcode);
+               I.quantity=product.quantity;
+                I.rate=product.rate;
+                I.amount=product.amount;
+                I.total=product.total;
+                printf("%s\t%lf\t%f\t%f\t",product.itcode,product.quantity,product.rate,product.amount);
+                fwrite(&I,sizeof(I),1,fb);
+                printf("1.enter the next product\t2.generate the bill\t\n");
+                printf("enter the choice\n");
+                scanf("%d",&choice);
+                switch(choice)
+                {
+                    case 1:break;
+                    case 2:d=0;
+                }
+            }
+            fclose(f);
+            fclose(fb);
+}
+
+int main()
+{
+    templ();
+    int ch1,c1=1;
+    int ch2,ch3,ch4;
+    int man;
+
+    printf("\n\n\n\t\t\tWELCOME TO SUPERMARKET MANAGEMENT SYSTEM");
+    printf("HI !\n Please login to proceed \n");
+
+    while(1)
+    {
+    system("cls");
+    templ();
+    printf("\t\tenter your choice :\n\t\t\t1.\tMANAGER LOGIN\n\n\t\t\t2.\tITEMS\n\n\t\t\t3.\tBILLING\n\n\t\t\t4.\tVENDOR\n\n\t\t\t5.\tREPORTS\n\n\t\t\n\t\t Your choice:");
+    scanf("%d",&ch1);
+    switch(ch1)
+    {
+        case 1:
+
+            system("cls");
+            templ();
+            printf("\n\t\t\tMANAGER\n\n");
+            man=loginuser();
+            while(man==1)
+            {
+            scanf("");
+            printf("\n\n\n\t\t\tenter \n\t\t1.\tADD EMPLOYEE\n\t\t2.\tPRINT ALL EMPLOYEES\n\t\t3.\tREMOVE AN EMPLOYEE\n\t\t4.\tGO BACK\n\t\tyour choice :\t");
+            scanf("%d",&ch2);
+            switch(ch2)
+            {
+                case 1:
+                    addemp();
+                    break;
+                case 2:
+                    printemp();
+                    break;
+                case 3:
+                    //delemp();
+                case 4:
+                    c1=0;
+                default:
+                    break;
+
+            }
+            }
+            break;
+        case 2:
+            system("cls");
+            templ();
+            printf("\n\n\t\t\tITEMS\n");
+            printf("\n\n\t\tENTER \n\t\t1.\tADD NEW ITEM \n\t\t2.\tPRINT ITEMS\n\t\t3.\tREMOVE ITEMS\n\n\t\t\tyour choice :\t");
+            scanf("%d",&ch3);
+            switch(ch3)
+            {
+                case 1:
+                    addnewitem();
+                    break;
+                case 2:
+                    printitems();
+                    break;
+                case 3:
+                    //delitem();
+                    break;
+                default:
+                    break;
+            }
+            break;
+        case 3:
+
+            bill();
+
+                //generatebill();
+            break;
+        case 4:
+            //vendororder();
+            break;
+        case 5:
+            //
+            break;
+        case 7:
+            printemp();
+            break;
+        default:
+            printf("\n\n\t\tinvalid choice (exiting)");
+            break;
+
+
+    }
+    system("pause");
+
+    }
+    return 0;
+
+}
+
+
+
